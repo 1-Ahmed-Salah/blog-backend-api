@@ -25,3 +25,29 @@ export const register = asyncHandler( async(req, res, next)=> {
         message: "user registerd successfully"
     })
 })
+
+/**
+ * @desc    Login user
+ * @Route   POST /api/v1/auth/login
+ * @access  Public
+ */
+export const login = asyncHandler(async(req, res, next)=> {
+
+    const { email, password } = req.body;
+    
+    const user = await User.findOne({ email });
+
+    if(!user || !(await user.matchPassword(password))) {
+        return next(new ApiError('invalid email or password', 400));
+    }
+
+    res.status(200).json({
+        success: true,
+        message: "user logged in successfully",
+        data: {
+            id: user?._id,
+            email: user?.email,
+            username: user?.username,
+        }
+    })
+})
