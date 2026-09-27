@@ -1,5 +1,6 @@
+import { Document } from "mongoose";
 
-export interface IUser {
+interface IUser {
     username: string;
     email: string;
     password: string;
@@ -12,7 +13,10 @@ export interface IUser {
     isAccountVerified?: boolean;
 }
 
-export interface IUserMethods {
+interface IUserMethods {
     matchPassword:(password: string) => Promise<boolean>; 
 }
 
+type UserDocument = IUser & IUserMethods & Document;
+
+export type { IUser, IUserMethods, UserDocument }
