@@ -12,10 +12,12 @@ export const protect = asyncHandler(async(req, res, next)=> {
             
             const { userId } = jwt.verify(token, process.env.JWT_SECRET!) as { userId: string };
 
-            const user = await User.findById(userId);
+            const user = await User.findById(userId).select('-password');
             if(!user) {
                 return next(new ApiError("User not found", 404));
             }
+
+            req.user = user;
 
             next();
 
