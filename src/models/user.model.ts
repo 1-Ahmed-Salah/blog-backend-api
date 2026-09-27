@@ -1,4 +1,5 @@
 import { Schema, model } from "mongoose";
+import bcrypt from "bcryptjs";
 
 const UserSchema = new Schema({
     username: {
@@ -29,7 +30,10 @@ const UserSchema = new Schema({
             publicId: null
         }
     },
-    bio: String,
+    bio: {
+        type: String,
+        trim: true
+    },
     isAdmin: {
         type: Boolean,
         default: false
@@ -40,5 +44,17 @@ const UserSchema = new Schema({
     }
 }, { timestamps: true });
 
-export default model("User", UserSchema);
+UserSchema.pre('save', async function() {
+    if(!this.isModified('password')) {
+        return;
+    }
 
+    const salt = await bcrypt.genSalt(+process.env.HASH_SALT!);
+    this.password = await bcrypt.hash(this.password, salt);
+})
+
+UserSchema.methods.matchPassword = async function(password: string): Promise<boolean> {
+    return await bcrypt.compare(password, this.password);
+}
+
+export default model("User", UserSchema);
