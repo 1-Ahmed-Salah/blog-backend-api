@@ -1,6 +1,7 @@
 import { asyncHandler } from "../utils/asyncHandler.ts";
 import { ApiError } from "../utils/apiError.ts";
 import User from "../models/user.model.ts";
+import { generateToken } from "../utils/generateToken.ts";
 
 /**
  * @desc    Register a new user
@@ -34,16 +35,19 @@ export const register = asyncHandler( async(req, res, next)=> {
 export const login = asyncHandler(async(req, res, next)=> {
 
     const { email, password } = req.body;
-    
+
     const user = await User.findOne({ email });
 
     if(!user || !(await user.matchPassword(password))) {
         return next(new ApiError('invalid email or password', 400));
     }
 
+    const token = generateToken(user.id);
+
     res.status(200).json({
         success: true,
         message: "user logged in successfully",
+        token,
         data: {
             id: user?._id,
             email: user?.email,

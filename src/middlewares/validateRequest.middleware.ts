@@ -6,9 +6,6 @@ export const validateRequest = <T>(schema: ObjectSchema<T>): RequestHandler =>
     (req, res, next) => {
         const { error } = schema.required().validate(req.body, { abortEarly: true });
 
-        console.log(req.body)
-        console.log(error);
-
         if(error) {
             return next(new ApiError(error.message, 400));
         }
