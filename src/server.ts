@@ -1,7 +1,7 @@
 import "dotenv/config";
-import { app } from "./app";
+import { app } from "./app.ts";
 import { createServer } from "node:http";
-import { connectDB, disconnectDB } from "./config/db";
+import { connectDB, disconnectDB } from "./config/db.ts";
 
 
 async function bootstrab() {
