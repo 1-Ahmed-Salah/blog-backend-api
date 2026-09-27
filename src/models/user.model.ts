@@ -1,7 +1,8 @@
 import { Schema, model } from "mongoose";
 import bcrypt from "bcryptjs";
+import type { IUser, IUserMethods } from "../types/user.type.ts";
 
-const UserSchema = new Schema({
+const UserSchema = new Schema<IUser & IUserMethods>({
     username: {
         type: String,
         trim: true,
