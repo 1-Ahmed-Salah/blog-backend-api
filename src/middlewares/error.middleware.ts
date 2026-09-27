@@ -1,5 +1,5 @@
 import type { NextFunction, Request, Response } from "express"
-import { ApiError } from "../utils/ApiError.ts"
+import { ApiError } from "../utils/apiError.ts"; 
 
 export const notFound = (req: Request, res: Response, next: NextFunction) => {
     next(new ApiError(`not found this route: ${req.originalUrl}`, 404));
