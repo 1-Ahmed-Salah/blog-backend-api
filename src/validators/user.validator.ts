@@ -12,3 +12,10 @@ export const loginValidate = joi.object({
     password: joi.string().trim().min(6).required(),
 });
 
+export const updateValidate = joi.object({
+    username: joi.string().trim().min(2).max(20),
+    email: joi.string().email().trim().min(2).max(50),
+    bio: joi.string().trim()
+})
+
+
