@@ -5,6 +5,51 @@ import { cloudinaryUploadImage, cloudinaryDeleteImage } from "../utils/cloudinar
 import Post from "../models/post.model.ts";
 
 /**
+ * @desc    Get list of posts
+ * @Route   GET /api/v1/auth/posts
+ * @access  Public
+ */
+export const getPosts = asyncHandler(async(req, res, next)=> {
+
+    const page = +req.query.page! || 1;
+    const limit = +req.query.limit! || 10;
+    const skip = (page - 1) * limit;
+
+    const [ posts, totalPosts ] = await Promise.all([
+        await Post.find().sort({ createdAt: -1 })
+        .skip(skip).limit(limit).populate({ path: "user", select: "-password" }),
+        await Post.countDocuments()
+    ]);
+
+    res.status(200).json({
+        success: true,
+        page,
+        count: totalPosts,
+        data: posts
+    });
+})
+
+/**
+ * @desc    Get a post
+ * @Route   GET /api/v1/auth/posts/:id
+ * @access  Public
+ */
+export const getPost = asyncHandler(async(req, res, next)=> {
+    
+    const { id } = req.params;
+
+    const post = await Post.findById(id).populate({ path: "user", select: "-password" });
+    if(!post) {
+        return next(new ApiError('Post not found', 404));
+    }
+
+    res.status(200).json({
+        success: true,
+        data: post
+    })
+})
+
+/**
  * @desc    Create a new post
  * @Route   POST /api/v1/auth/posts
  * @access  Private (logged in user)
@@ -45,4 +90,35 @@ export const createPost = asyncHandler(async(req, res, next)=> {
     })
 
     fs.unlinkSync(imagePath);
+})
+
+/**
+ * @desc    Delete a post
+ * @Route   DELETE /api/v1/auth/posts/:id
+ * @access  Private (admin or user himself)
+ */
+export const deletePost = asyncHandler(async(req, res, next)=> {
+
+
+    const { id } = req.params;
+
+    const post = await Post.findById(id);
+    if(!post) {
+        return next(new ApiError("Post not found", 404));
+    }
+
+    if(!req.user?.isAdmin && post.user.toString() !== req.user?.id) {
+        return next(new ApiError("Access denied", 403))
+    }
+
+    await cloudinaryDeleteImage(post.image.publicId);
+
+    await Post.findByIdAndDelete(id);
+
+    // @TODO 1. Delete all comment thar belong to this post
+
+    res.status(200).json({
+        success: true,
+        message: "Post deleted successfully"
+    })
 })
