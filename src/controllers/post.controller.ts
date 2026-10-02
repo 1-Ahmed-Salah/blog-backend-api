@@ -3,6 +3,7 @@ import { asyncHandler } from "../utils/asyncHandler.ts";
 import { ApiError } from "../utils/apiError.ts";
 import { cloudinaryUploadImage, cloudinaryDeleteImage } from "../utils/cloudinary.ts";
 import Post from "../models/post.model.ts";
+import User from "../models/user.model.ts";
 
 /**
  * @desc    Get list of posts
@@ -162,6 +163,48 @@ export const updatePostImage = asyncHandler(async(req, res, next)=> {
     })
 
     fs.unlinkSync(imagePath);
+})
+
+/**
+ * @desc    Toggle like on post
+ * @Route   POST /api/v1/auth/posts/like/:id
+ * @access  Private (logged in user)
+ */
+export const toggleLike = asyncHandler(async(req, res, next)=> {
+    
+    const { id } = req.params;
+
+    const post = await Post.findById(id);
+    if(!post) {
+        return next(new ApiError("Post not found", 404));
+    }
+
+    const userId = req.user?.id;
+
+    if(!userId) {
+        return next(new ApiError("User not found", 404));
+    }
+
+    const isLiked = post.likes.some(like => like.toString() === userId);
+
+    let updatedPost;
+
+    if(isLiked) {
+        // unlike
+        //post.likes = post.likes.filter(like => like.toString() !== userId);
+        updatedPost = await Post.findByIdAndUpdate(id, { $pull: { likes: userId } }, { returnDocument: "after" })
+    } else {
+        // add like
+        // post.likes.push(userId);
+        updatedPost = await Post.findByIdAndUpdate(id, { $addToSet: { likes: userId } }, { returnDocument: "after" });
+    }
+
+    res.status(200).json({
+        success: true,
+        message: isLiked? "Post unliked successfully" : "Post liked successfully",
+        isLiked: !isLiked,
+        likesCount: updatedPost?.likes.length ?? 0
+    })
 })
 
 /**

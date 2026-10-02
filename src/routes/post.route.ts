@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { protect } from "../middlewares/protect.middleware.ts";
 import { upload } from "../middlewares/upload.middleware.ts";
-import { createPost, deletePost, getPost, getPosts, updatePost, updatePostImage } from "../controllers/post.controller.ts";
+import { createPost, deletePost, getPost, getPosts, toggleLike, updatePost, updatePostImage } from "../controllers/post.controller.ts";
 import { validateRequest } from "../middlewares/validateRequest.middleware.ts";
 import { createPostValidate, updatePostValidate } from "../validators/post.validator.ts";
 import { validateObjectId } from "../middlewares/validateObjectId.ts";
@@ -19,5 +19,6 @@ router.route('/:id')
     .delete(protect, validateObjectId, deletePost);
 
 router.put('/upload-image/:id', protect, validateObjectId, upload.single('image'), updatePostImage);
+router.post('/like/:id', protect, validateObjectId, toggleLike);
 
 export default router;
