@@ -1,9 +1,9 @@
 import { Router } from "express";
 import { protect } from "../middlewares/protect.middleware.ts";
 import { upload } from "../middlewares/upload.middleware.ts";
-import { createPost, deletePost, getPost, getPosts } from "../controllers/post.controller.ts";
+import { createPost, deletePost, getPost, getPosts, updatePost, updatePostImage } from "../controllers/post.controller.ts";
 import { validateRequest } from "../middlewares/validateRequest.middleware.ts";
-import { createPostValidate } from "../validators/post.validator.ts";
+import { createPostValidate, updatePostValidate } from "../validators/post.validator.ts";
 import { validateObjectId } from "../middlewares/validateObjectId.ts";
 import { checkAdminOrUserHimself } from "../middlewares/checkAdminOrUserHimself.ts";
 
@@ -15,6 +15,9 @@ router.route('/')
 
 router.route('/:id')
     .get(validateObjectId, getPost)
+    .put(protect, validateObjectId, validateRequest(updatePostValidate), updatePost)
     .delete(protect, validateObjectId, deletePost);
+
+router.put('/upload-image/:id', protect, validateObjectId, upload.single('image'), updatePostImage);
 
 export default router;

@@ -12,12 +12,13 @@ const router = Router();
 router.route('/')
     .get(protect, checkAdmin, getUsers);
 
-router.post('/upload-profile-image', protect, upload.single('avatar'), uploadProfileImage)
-
-router.put("/change-password/:id", protect, validateObjectId, checkUserHimself, changePassword);
 router.route('/:id')
     .get(protect, validateObjectId, getUser)
     .put(protect, validateObjectId, checkUserHimself, updateUser)
     .delete(protect, validateObjectId, checkAdminOrUserHimself, deleteUser);
+
+router.post('/upload-profile-image', protect, upload.single('avatar'), uploadProfileImage);
+
+router.put("/change-password/:id", protect, validateObjectId, checkUserHimself, changePassword);
 
 export default router;

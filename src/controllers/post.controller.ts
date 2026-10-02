@@ -93,6 +93,78 @@ export const createPost = asyncHandler(async(req, res, next)=> {
 })
 
 /**
+ * @desc    Update a post
+ * @Route   PUT /api/v1/auth/posts/:id
+ * @access  Private (user himself)
+ */
+export const updatePost = asyncHandler(async(req, res, next)=> {
+
+    const { id } = req.params;
+
+    const post = await Post.findById(id);
+    if(!post) {
+        return next(new ApiError("Post not found", 404));
+    }
+
+    if(req.user?.id !== post.user.toString()) {
+        return next(new ApiError("Access denied", 403));
+    }
+
+    const updatedPost = await Post.findByIdAndUpdate(id, req.body, { returnDocument: "after" });
+    if(!updatedPost) {
+        return next(new ApiError("Something went wrong", 400));
+    }
+
+    res.status(200).json({
+        success: true,
+        message: "Post updated successfully",
+        data: updatedPost
+    }) 
+})
+
+/**
+ * @desc    Update post image
+ * @Route   PUT /api/v1/auth/posts/upload-image/:id
+ * @access  Private (user himself)
+ */
+export const updatePostImage = asyncHandler(async(req, res, next)=> {
+
+    if(!req.file) {
+        return next(new ApiError("No post image provided", 400));
+    }
+
+    const { id } = req.params;
+    const imagePath = req.file.path;
+
+    const post = await Post.findById(id);
+    if(!post) {
+        return next(new ApiError("Post not found", 404));
+    }
+
+    if(req.user?.id !== post.user.toString()) {
+        return next(new ApiError("Access denied", 403));
+    }
+
+    await cloudinaryDeleteImage(post.image.publicId);
+
+    const { secure_url, public_id } = await cloudinaryUploadImage(imagePath);
+
+    post.image = {
+        url: secure_url,
+        publicId: public_id
+    }
+
+    await post.save();
+
+    res.status(200).json({
+        success: true,
+        message: "Post image updated successfully"
+    })
+
+    fs.unlinkSync(imagePath);
+})
+
+/**
  * @desc    Delete a post
  * @Route   DELETE /api/v1/auth/posts/:id
  * @access  Private (admin or user himself)
