@@ -3,7 +3,6 @@ import { asyncHandler } from "../utils/asyncHandler.ts";
 import { ApiError } from "../utils/apiError.ts";
 import { cloudinaryUploadImage, cloudinaryDeleteImage } from "../utils/cloudinary.ts";
 import Post from "../models/post.model.ts";
-import User from "../models/user.model.ts";
 
 /**
  * @desc    Get list of posts
