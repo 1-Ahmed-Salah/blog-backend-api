@@ -1,12 +1,14 @@
 import fs from "node:fs";
 import { asyncHandler } from "../utils/asyncHandler.ts";
 import { ApiError } from "../utils/apiError.ts";
-import { cloudinaryDeleteImage, cloudinaryUploadImage } from "../utils/cloudinary.ts";
+import { cloudinaryDeleteImage, cloudinaryDeleteImages, cloudinaryUploadImage } from "../utils/cloudinary.ts";
 import User from "../models/user.model.ts";
+import Post from "../models/post.model.ts";
+import Comment from "../models/comment.model.ts";
 
 /**
  * @desc    Get list of users
- * @Route   GET /api/v1/auth/users
+ * @Route   GET /api/v1/users
  * @access  Private (admin)
  */
 export const getUsers = asyncHandler(async(req, res, next)=> {
@@ -31,7 +33,7 @@ export const getUsers = asyncHandler(async(req, res, next)=> {
 
 /**
  * @desc    Get a user by id
- * @Route   GET /api/v1/auth/users/:id
+ * @Route   GET /api/v1/users/:id
  * @access  Public
  */
 export const getUser = asyncHandler(async(req, res, next)=>{
@@ -51,7 +53,7 @@ export const getUser = asyncHandler(async(req, res, next)=>{
 
 /**
  * @desc    Update a user data
- * @Route   PUT /api/v1/auth/users/:id
+ * @Route   PUT /api/v1/users/:id
  * @access  Private (user himself)
  */
 export const updateUser = asyncHandler(async(req, res, next)=> {
@@ -72,7 +74,7 @@ export const updateUser = asyncHandler(async(req, res, next)=> {
 
 /**
  * @desc    Change password
- * @Route   PUT /api/v1/auth/users/change-password/:id
+ * @Route   PUT /api/v1/users/change-password/:id
  * @access  Private (user himself)
  */
 export const changePassword = asyncHandler(async(req, res, next)=> {
@@ -104,7 +106,7 @@ export const changePassword = asyncHandler(async(req, res, next)=> {
 
 /**
  * @desc    Upload profile image
- * @Route   POST /api/v1/auth/users/upload-profile-image
+ * @Route   POST /api/v1/users/upload-profile-image
  * @access  Private (user himself)
  */
 export const uploadProfileImage = asyncHandler(async(req, res, next)=> {
@@ -143,7 +145,7 @@ export const uploadProfileImage = asyncHandler(async(req, res, next)=> {
 
 /**
  * @desc    Delete a user
- * @Route   DELETE /api/v1/auth/users/u:id
+ * @Route   DELETE /api/v1/users/u:id
  * @access  Private (admon or user himself)
  */ 
 export const deleteUser = asyncHandler(async(req, res, next)=> {
@@ -155,20 +157,24 @@ export const deleteUser = asyncHandler(async(req, res, next)=> {
         return next(new ApiError("User not found", 404));
     }
 
-    // @TODO 2. Get all posts from DB
-    // @TODO 3. Get the public ids from the posts
-    // @TODO 4. Delete all posts image from cloudinary that belong to this user
+    const posts = await Post.find({ user: user._id });
     
-    // 5. Delete the profile picture from cloudinary
+    const public_ids = posts.map(post => post.image.publicId);
+
+    if(public_ids.length > 0) {
+        await cloudinaryDeleteImages(public_ids);
+    }
+
     if(user.image?.publicId) {
         await cloudinaryDeleteImage(user.image?.publicId!);
     }
 
-    // @TODO 6. Delete user posts & comments
+    await Post.deleteMany({ user: user._id });
 
-    // 7. Delete the user himself
+    await Comment.deleteMany({ user: user._id });
+
     await User.findByIdAndDelete(id);
-    // 8. Send a response to the client
+
     res.status(200).json({
         success: true,
         message: "User deleted successfully"

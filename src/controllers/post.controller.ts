@@ -3,10 +3,11 @@ import { asyncHandler } from "../utils/asyncHandler.ts";
 import { ApiError } from "../utils/apiError.ts";
 import { cloudinaryUploadImage, cloudinaryDeleteImage } from "../utils/cloudinary.ts";
 import Post from "../models/post.model.ts";
+import Comment from "../models/comment.model.ts";
 
 /**
  * @desc    Get list of posts
- * @Route   GET /api/v1/auth/posts
+ * @Route   GET /api/v1/posts
  * @access  Public
  */
 export const getPosts = asyncHandler(async(req, res, next)=> {
@@ -17,7 +18,9 @@ export const getPosts = asyncHandler(async(req, res, next)=> {
 
     const [ posts, totalPosts ] = await Promise.all([
         await Post.find().sort({ createdAt: -1 })
-        .skip(skip).limit(limit).populate({ path: "user", select: "-password" }),
+            .skip(skip).limit(limit)
+            .populate({ path: "user", select: "-password" })
+            .populate({ path: "comments" }),
         await Post.countDocuments()
     ]);
 
@@ -31,14 +34,16 @@ export const getPosts = asyncHandler(async(req, res, next)=> {
 
 /**
  * @desc    Get a post
- * @Route   GET /api/v1/auth/posts/:id
+ * @Route   GET /api/v1/posts/:id
  * @access  Public
  */
 export const getPost = asyncHandler(async(req, res, next)=> {
     
     const { id } = req.params;
 
-    const post = await Post.findById(id).populate({ path: "user", select: "-password" });
+    const post = await Post.findById(id)
+        .populate({ path: "user", select: "-password" })
+        .populate({ path: "comments" });
     if(!post) {
         return next(new ApiError('Post not found', 404));
     }
@@ -51,7 +56,7 @@ export const getPost = asyncHandler(async(req, res, next)=> {
 
 /**
  * @desc    Create a new post
- * @Route   POST /api/v1/auth/posts
+ * @Route   POST /api/v1/posts
  * @access  Private (logged in user)
  */
 export const createPost = asyncHandler(async(req, res, next)=> {
@@ -94,7 +99,7 @@ export const createPost = asyncHandler(async(req, res, next)=> {
 
 /**
  * @desc    Update a post
- * @Route   PUT /api/v1/auth/posts/:id
+ * @Route   PUT /api/v1/posts/:id
  * @access  Private (user himself)
  */
 export const updatePost = asyncHandler(async(req, res, next)=> {
@@ -124,7 +129,7 @@ export const updatePost = asyncHandler(async(req, res, next)=> {
 
 /**
  * @desc    Update post image
- * @Route   PUT /api/v1/auth/posts/upload-image/:id
+ * @Route   PUT /api/v1/posts/upload-image/:id
  * @access  Private (user himself)
  */
 export const updatePostImage = asyncHandler(async(req, res, next)=> {
@@ -166,7 +171,7 @@ export const updatePostImage = asyncHandler(async(req, res, next)=> {
 
 /**
  * @desc    Toggle like on post
- * @Route   POST /api/v1/auth/posts/like/:id
+ * @Route   POST /api/v1/posts/like/:id
  * @access  Private (logged in user)
  */
 export const toggleLike = asyncHandler(async(req, res, next)=> {
@@ -208,7 +213,7 @@ export const toggleLike = asyncHandler(async(req, res, next)=> {
 
 /**
  * @desc    Delete a post
- * @Route   DELETE /api/v1/auth/posts/:id
+ * @Route   DELETE /api/v1/posts/:id
  * @access  Private (admin or user himself)
  */
 export const deletePost = asyncHandler(async(req, res, next)=> {
@@ -230,6 +235,7 @@ export const deletePost = asyncHandler(async(req, res, next)=> {
     await Post.findByIdAndDelete(id);
 
     // @TODO 1. Delete all comment thar belong to this post
+    await Comment.deleteMany({ postId: post._id });
 
     res.status(200).json({
         success: true,

@@ -37,6 +37,17 @@ const PostSchema = new Schema({
             ref: "User",
         }
     ]
-}, { timestamps: true });
+}, { 
+        timestamps: true,
+        toJSON: { virtuals: true },
+        toObject: { virtuals: true }
+    }
+);
+
+PostSchema.virtual("comments", {
+    ref: "Comment",
+    foreignField: "postId",
+    localField: "_id"
+});
 
 export default model("Post", PostSchema);

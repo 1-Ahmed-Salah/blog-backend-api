@@ -27,5 +27,15 @@ export const cloudinaryDeleteImage = async (public_id: string) => {
     }
 }
 
+export const cloudinaryDeleteImages = async (public_ids: string[]) => {
+
+    try {
+        
+        await cloudinary.api.delete_resources(public_ids);
+
+    } catch (error) {
+        throw new Error("Remove image went wrong");
+    }
+}
 
 
