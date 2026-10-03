@@ -5,7 +5,8 @@
   "main": "server.js",
   "scripts": {
     "start": "node ./dist/server.js",
-    "run:dev": "nodemon"
+    "run:dev": "nodemon",
+    "build": "tsc"
   },
   "keywords": [],
   "author": "",
