@@ -11,6 +11,7 @@ import { xss } from "express-xss-sanitizer"
  * @desc    Custom modules and middlewares
  */
 import { errorMiddleware, notFound } from "./middlewares/error.middleware.ts";
+import { globalLimiter } from "./middlewares/rateLimite.middleware.ts";
 
 /**
  * @desc    Routes
@@ -25,6 +26,7 @@ const app: Express = express();
 
 app.use(helmet())
 app.use(cors());
+app.use(globalLimiter)
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(xss())
