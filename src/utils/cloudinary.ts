@@ -1,4 +1,5 @@
 import { cloudinary } from "../config/cloudinary.ts";
+import { ApiError } from "./apiError.ts";
 
 export const cloudinaryUploadImage = async (imagePath: string) => {
 
@@ -11,7 +12,7 @@ export const cloudinaryUploadImage = async (imagePath: string) => {
     return { secure_url, public_id }
 
    } catch (error) {
-        throw new Error("Uploading went wrong");
+        return new ApiError("Uploading went wrong", 400);
    }
 
 }
@@ -23,7 +24,7 @@ export const cloudinaryDeleteImage = async (public_id: string) => {
         await cloudinary.uploader.destroy(public_id);
 
     } catch (error) {
-        throw new Error("Remove image went wrong");
+        return new ApiError("Remove image went wrong", 400);
     }
 }
 
@@ -34,7 +35,7 @@ export const cloudinaryDeleteImages = async (public_ids: string[]) => {
         await cloudinary.api.delete_resources(public_ids);
 
     } catch (error) {
-        throw new Error("Remove image went wrong");
+        return new ApiError("Remove images went wrong", 400);
     }
 }
 

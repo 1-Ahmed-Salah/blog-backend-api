@@ -1,9 +1,11 @@
 /**
  * @desc    Core and third party modules
  */
-import express, { type Express } from "express";
 import path from "node:path";
+import express, { type Express } from "express";
 import cors from "cors";
+import helmet from "helmet";
+import { xss } from "express-xss-sanitizer"
 
 /**
  * @desc    Custom modules and middlewares
@@ -21,11 +23,18 @@ import CategoryRoute from "./routes/category.route.ts";
 
 const app: Express = express();
 
+app.use(helmet())
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(xss())
 
 // Routes
+app.use('/health', (req, res)=> {
+    res.status(200).json({
+        message: "ok"
+    })
+})
 app.use('/api/v1/auth', AuthRoute);
 app.use('/api/v1/users', UsersRoute);
 app.use('/api/v1/posts', PostRoute);

@@ -38,10 +38,6 @@ const UserSchema = new Schema<IUser & IUserMethods>({
     isAdmin: {
         type: Boolean,
         default: false
-    },
-    isAccountVerified: {
-        type: Boolean,
-        default: false
     }
 }, { timestamps: true });
 
